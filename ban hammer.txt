@@ -1,0 +1,737 @@
+game.Players.LocalPlayer.Character.Humanoid.MaxHealth = 999999e999999
+local tool=Instance.new("HopperBin", game.Players.LocalPlayer.Backpack)
+tool.Name="Ban Hammer"
+
+wait()
+script.Parent = tool
+
+wait()
+local camera = game.Workspace.CurrentCamera
+local player = game.Players.LocalPlayer
+local character = player.Character
+local humanoid = character.Humanoid
+local head = character.Head
+local torso = character.Torso
+local pl_mouse = player:GetMouse()
+
+local rs = game:GetService("RunService")
+
+local stab_damage = 9999999e9999999
+local walkspeeds = {80, 80}
+
+Settings = {
+	Equip_time = 0.1,
+	Idle_speed = 0.1,
+	Attack_speed = 0.1,
+}
+
+local assetlink = "http://www.roblox.com/asset/?id="
+local hit_sounds = {"501642310", "501642310", "501642310", "501642310"}
+local death_sounds = {"501642310", "501642310", "501642310"}
+function Clean(obj)
+	spawn(function()
+		wait(6)
+		obj:remove()
+	end)
+end
+
+function HIT_HANDLE(hit, dmg, pos)
+	if hit == nil then return end
+	local h = hit.Parent:findFirstChild("Humanoid")
+	if h == nil then
+		h = hit.Parent.Parent:findFirstChild("Humanoid")
+	end
+	if h == nil then return end
+	if h.Health <= 0 then return end
+	
+	local head = h.Parent:findFirstChild("Head")
+	if head == nil then return end
+	
+	local sound_part = Instance.new("Part")
+	sound_part.formFactor = "Custom"
+	sound_part.Size = Vector3.new(0.2, 0.2, 0.2)
+	sound_part.Transparency = 1
+	sound_part.CanCollide = false
+	sound_part.Anchored = true
+	sound_part.CFrame = head.CFrame
+	Clean(sound_part)
+	sound_part.Parent = Workspace
+	local s_hit = Instance.new("Sound")
+	s_hit.Volume = 1
+	s_hit.SoundId = assetlink .. hit_sounds[math.random(1, #hit_sounds)]
+	s_hit.Parent = sound_part
+	local s_die = Instance.new("Sound")
+	s_die.Volume = 1
+	s_die.SoundId = assetlink .. death_sounds[math.random(1, #death_sounds)]
+	s_die.Parent = sound_part
+	
+	s_hit:play()
+	
+	local c_tag = Instance.new("ObjectValue")
+	c_tag.Name = "creator"
+	c_tag.Value = player
+	c_tag.Parent = h
+	h.Health=0
+	s_die:play()
+end
+
+function GENERATE_IGNORELIST()
+	local result = {character, camera}
+	local plr = game.Players:GetPlayers()
+	for i = 1, #plr do
+		if plr[i] ~= player then
+			local char = plr[i].Character
+			if char ~= nil then
+				local ch = char:GetChildren()
+				for i = 1, #ch do
+					if ch[i]:IsA("Hat") or ch[i]:IsA("Tool") then
+						result[#result + 1] = ch[i]
+					end
+				end
+			end
+		end
+	end
+	return result
+end
+
+function RayCast(pos1, pos2, dist, ign)
+	local ray = Ray.new(
+		pos1,
+		(pos2 - pos1).unit * math.abs(dist)
+	) 
+	local hit, hpos = Workspace:FindPartOnRayWithIgnoreList(ray, ign, false)
+	return hit, hpos
+end
+
+local larm = character:findFirstChild("Left Arm")
+local rarm = character:findFirstChild("Right Arm")
+function Slash(del)
+	coroutine.resume(coroutine.create(function()
+		local hits = {}
+		
+		local start = tick()
+		local actv = true
+		
+		local function ishitted(obj)
+			for i = 1, #hits do
+				if obj:IsDescendantOf(hits[i]) then
+					return true
+				end
+			end
+			return false
+		end
+		
+		local function hitp(hit)
+			if ishitted(hit) then return end
+			local h = hit.Parent:findFirstChild("Humanoid")
+			if h == nil then
+				h = hit.Parent.Parent:findFirstChild("Humanoid")
+			end
+			if h == nil then return end
+			hits[#hits + 1] = h.Parent
+			HIT_HANDLE(hit, stab_damage)
+		end
+		
+		local con = {
+			larm.Touched:connect(hitp),
+			rarm.Touched:connect(hitp),
+		}
+		
+		while tick() - start <= Settings.Attack_speed do wait() end
+		actv = false
+		con[1]:disconnect()
+		con[2]:disconnect()
+	end))
+end
+
+local dg_sounds = {
+	equip = {
+		"465591978"
+	},
+	hit = {
+		"501642310",
+		"501642310",
+		"501642310",
+		"501642310"
+	},
+	swing = {
+		"528494638",
+		"528494638",
+		"528494638",
+		"528494638"
+	}
+}
+
+local dg_soundobj = {}
+for k, v in pairs(dg_sounds) do
+	dg_soundobj[k] = {}
+	for i = 1, #v do
+		local ns = Instance.new("Sound")
+		ns.SoundId = assetlink .. v[i]
+		ns.Volume = 1
+		dg_soundobj[k][#dg_soundobj[k] + 1] = ns
+	end
+end
+
+function LoadSounds()
+	for __, v in pairs(dg_soundobj) do
+		for i = 1, #v do
+			v[i].Parent = head
+		end
+	end
+end
+function RemoveSounds()
+	for __, v in pairs(dg_soundobj) do
+		for i = 1, #v do
+			v[i].Parent = nil
+		end
+	end
+end
+function PlaySound(nm, dl)
+	if dl == nil then
+		dg_soundobj[nm][math.random(1, #dg_soundobj[nm])]:play()
+	else
+		coroutine.resume(coroutine.create(function()
+			wait(dl)
+			dg_soundobj[nm][math.random(1, #dg_soundobj[nm])]:play()
+		end))
+	end
+end
+
+_G.MurderKnife_AnimType = "Default"
+_G.MurderKnife_AnimState = 0
+
+function Animate(tp, st)
+	_G.MurderKnife_AnimType = tp
+	_G.MurderKnife_AnimState = st
+end
+
+tool.Selected:connect(function(mouse)
+	humanoid.WalkSpeed = walkspeeds[2]
+	mouse.Icon = assetlink .. "54019936"
+	Animate("Equip", 0)
+	LoadSounds()
+	PlaySound("equip", 0.1)
+	
+	local anim_equip = 1
+	local last_action = tick()
+	local idle_rand = math.random(4, 7)
+	local idle_perform = 0
+	local idle_type = 1
+	
+	local attack_perform = 0
+	local attack_type = 1
+	
+	local running = true
+	local last_c = tick()
+	
+	local click_start = tick()
+	mouse.Button1Down:connect(function()
+		if not running or anim_equip > 0 then return end
+		if tick() - attack_perform <= Settings.Attack_speed then return end
+		attack_perform = tick()
+		last_action = tick()
+		attack_type = math.random(1, 3)
+		idle_perform = 0
+		PlaySound("swing", 0.1)
+		Slash(0.1)
+	end)
+	
+	local conn = rs.RenderStepped:connect(function()
+		if not running then return end
+		local delta = tick() - last_c
+		last_c = tick()
+		
+		if anim_equip > 0 then
+			anim_equip = math.max(0, anim_equip - (delta / Settings.Equip_time))
+			Animate("Equip", 1 - anim_equip)
+		elseif tick() - attack_perform <= Settings.Attack_speed then
+			Animate("Attack" .. attack_type, (tick() - attack_perform) / Settings.Attack_speed)
+			idle_perform = 0
+		elseif tick() - idle_perform <= Settings.Idle_speed then
+			Animate("Idle" .. idle_type, (tick() - idle_perform) / Settings.Idle_speed)
+		else
+			Animate("Default", 0)
+		end
+		
+		if tick() - last_action >= idle_rand then
+			idle_rand = math.random(12, 20)
+			last_action = tick()
+			idle_perform = tick()
+			idle_type = math.random(1, 2)
+		end
+		
+	end)
+	tool.Deselected:connect(function() running = false conn:disconnect() end)
+end)
+tool.Deselected:connect(function()
+	RemoveSounds()
+	humanoid.WalkSpeed = walkspeeds[1]
+end)
+
+local mouse = pl_mouse
+
+local conn_type = "Snap"
+
+local anim_head = false
+
+weapon_properties = {
+	mesh_id = "http://www.roblox.com/asset/?id=10604848",
+	texture_id = "http://www.roblox.com/asset/?id=10605252",  
+	scale = Vector3.new(0.5, 0.5, 0.5),
+	transparency = 0,
+	reflectance = 0,
+	brick_color = BrickColor.new("Really black"),
+}
+
+Animations = {
+	Default = {
+		{{}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)}
+	},
+	Equip = {
+		{{}, 0, CFrame.new(0, 0, 0) * CFrame.Angles(-1.571, 0, 0), CFrame.new(0, 0, 0) * CFrame.Angles(-1.571, 0, 0), CFrame.new(0, -1.3, -0.5) * CFrame.Angles(-2.618, 0, 0)},
+		{{0.8, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.524, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(0, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+		{{0.2, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+	},
+	Idle1 = {
+		{{}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+		{{0.3, 2}, 0, CFrame.new(0.8, -0.301, 0.2) * CFrame.Angles(-0.35, 0, 0.872), CFrame.new(-0.201, 0, 0) * CFrame.Angles(0.523, 1.221, -0.699), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 1.221, 0)},
+		{{0.55, 2}, 0, CFrame.new(0.2, -0.5, 0.2) * CFrame.Angles(-0.14, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(0, 1.221, -0.175), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.746, 1.221, 0.174)},
+		{{0.15, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+	},
+	Idle2 = {
+		{{}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+		{{0.3, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.524, 0, 0.872), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, -0.175, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0.523, 0)},
+		{{0.3, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(0.349, 0, 0.523), CFrame.new(-0.201, 0, 0) * CFrame.Angles(0.174, 0.698, -0.524), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, -1.222, 0)},
+		{{0.2, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(0.61, 0, 0.349), CFrame.new(-0.201, 0, 0) * CFrame.Angles(0.139, 0.663, -0.489), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, -1.222, 0)},
+		{{0.2, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)}
+	},
+	Attack1 = {
+		{{}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+		{{0.25, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-1.048, 0, 0.349), CFrame.new(-0.201, 0, 0) * CFrame.Angles(0.872, 0.349, 0.087), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+		{{0.15, 2}, 0, CFrame.new(0.4, -0.101, 0.1) * CFrame.Angles(-1.571, 0, -0.35), CFrame.new(-0.301, -0.301, 0.1) * CFrame.Angles(-1.048, -0.175, -0.524), CFrame.new(0, -1.201, -0.801) * CFrame.Angles(-2.095, 0, 0)},
+		{{0.6, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)}
+	},
+	Attack2 = {
+		{{}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+		{{0.25, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.699, 0, 0.872), CFrame.new(-0.401, 0.3, 0.1) * CFrame.Angles(1.919, 2.443, -1.222), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+		{{0.15, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-1.048, 0, -0.524), CFrame.new(-0.5, -0.201, -0.101) * CFrame.Angles(0.523, 1.396, -0.873), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+		{{0.6, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)}
+	},
+	Attack3 = {
+		{{}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)},
+		{{0.25, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-1.397, 0, 0.174), CFrame.new(-0.401, -0.201, 0) * CFrame.Angles(1.396, 0.698, -1.571), CFrame.new(0, -1.3, -0.401) * CFrame.Angles(-2.444, 0, 0)},
+		{{0.15, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-1.397, 0, 0.174), CFrame.new(-0.401, 0.1, 0) * CFrame.Angles(0.349, 2.094, -0.524), CFrame.new(0, -1.3, 0.1) * CFrame.Angles(-3.84, 0, 0)},
+		{{0.6, 2}, 0, CFrame.new(0.4, -0.201, 0.2) * CFrame.Angles(-0.873, 0, 0.698), CFrame.new(-0.201, 0, 0) * CFrame.Angles(-0.175, 0.349, -0.262), CFrame.new(0, -0.95, -0.801) * CFrame.Angles(-1.571, 0, 0)}
+	}
+}
+
+
+function CFrameTrans(GetCFrame1, GetCFrame2, GetNumber)
+	local Diff2 = GetCFrame2.p - GetCFrame1.p
+	GetCFrame1_s = GetCFrame1 - GetCFrame1.p
+	GetCFrame2 = GetCFrame2 - GetCFrame2.p
+	local Diff = GetCFrame1_s:inverse() * GetCFrame2
+	local x1, y1, z1 = Diff:toEulerAnglesXYZ()
+	return (GetCFrame1 + (Diff2 * GetNumber)) * CFrame.Angles(x1 * GetNumber, y1 * GetNumber, z1 * GetNumber)
+end
+
+function TransEff(x, type)
+	if type == 1 then
+		return x
+	elseif type == 2 then
+		return x*x*(3 - 2*x)
+	elseif type == 3 then
+		return math.sin(math.rad(x * 90))
+	elseif type == 4 then
+		return 1 - math.sin(math.rad((1 - x) * 90))
+	end
+end
+
+function num_trans(n1, n2, x)
+	return n1 + ((n2 - n1) * x)
+end
+
+function PlayAnimation(anim_name, tm)
+	tm = math.min(1, math.max(0, tm))
+	local animd = Animations[anim_name]
+	if #animd == 1 then
+		return {animd[1][3], animd[1][4], animd[1][5], animd[1][2]}
+	else
+		local trans_from = 1
+		local trans_to = 1
+		local tm_left = tm
+		for i = 2, #animd do
+			tm_left = tm_left - animd[i][1][1]
+			if tm_left <= 0 then
+				trans_from = i - 1
+				trans_to = i
+				break
+			end
+		end
+		local trans_amm = TransEff((animd[trans_to][1][1] + tm_left) / animd[trans_to][1][1], animd[trans_to][1][2])
+		return {
+			CFrameTrans(animd[trans_from][3], animd[trans_to][3], trans_amm),
+			CFrameTrans(animd[trans_from][4], animd[trans_to][4], trans_amm),
+			CFrameTrans(animd[trans_from][5], animd[trans_to][5], trans_amm),
+			num_trans(animd[trans_from][2], animd[trans_to][2], trans_amm)
+		}
+	end
+end
+
+rot_amplitude_head = 20
+rot_amplitude_chest = 15
+
+anim_p = {
+	cam_offset = CFrame.new(0.2, -0.37, 0.91) * CFrame.Angles(math.rad(0), math.rad(0), math.rad(0)),
+	aim_amp = 0.5,
+	aim_max_change = 4,
+	aim_retract = 15,
+	aim_max_deg = 20,
+}
+
+local weapon_model = Instance.new("Part")
+weapon_model.CanCollide = false
+weapon_model.Name = "WeaponObject"
+weapon_model.formFactor = "Custom"
+weapon_model.Size = Vector3.new(0.2, 0.2, 0.2)
+weapon_model.TopSurface = 0
+weapon_model.BottomSurface = 0
+weapon_model.BrickColor = weapon_properties.brick_color
+weapon_model.Transparency = weapon_properties.transparency
+weapon_model.Reflectance = weapon_properties.reflectance
+local mesh = Instance.new("SpecialMesh", weapon_model)
+mesh.Scale = weapon_properties.scale
+mesh.MeshId = weapon_properties.mesh_id
+mesh.TextureId = weapon_properties.texture_id
+
+torso = character.Torso
+head = character.Head
+
+motors = {torso:findFirstChild("Left Shoulder"), torso:findFirstChild("Right Shoulder"), torso:findFirstChild("Neck")}
+welds = {nil, nil, nil}
+weapon_parts = {weapon_model:clone(), weapon_model:clone()}
+weapon_model = nil
+
+function EndAnimation()
+	if motors[1] then
+		motors[1].Part1 = character:findFirstChild("Left Arm")
+	end
+	if motors[2] then
+		motors[2].Part1 = character:findFirstChild("Right Arm")
+	end
+	if motors[3] then
+		motors[3].Part1 = character:findFirstChild("Head")
+	end
+	if welds[1] then
+		welds[1]:remove()
+		welds[1] = nil
+	end
+	if welds[2] then
+		welds[2]:remove()
+		welds[2] = nil
+	end
+	if welds[3] then
+		welds[3]:remove()
+		welds[3] = nil
+	end
+	weapon_parts[1].Parent = nil
+	if weapon_model then
+		weapon_model.Parent = nil
+	end
+	coroutine.resume(coroutine.create(function()
+		local swm = weapon_model
+		wait()
+		swm.Parent = nil
+		wait(0.1)
+		swm.Parent =  nil
+		wait(0.5)
+		swm.Parent =  nil
+	end))
+end
+
+local anim_model = Instance.new("Model")
+anim_model.Name = "WeaponAnimation"
+weapon_model = anim_model
+	
+local cam_larm = Instance.new("Part")
+cam_larm.Parent = anim_model
+cam_larm.BrickColor = BrickColor.new("Really black")
+cam_larm.formFactor = "Custom"
+cam_larm.Size = Vector3.new(0.2, 0.2, 0.2)
+cam_larm.TopSurface = 0
+cam_larm.BottomSurface = 0
+cam_larm.Transparency = 0.4
+cam_larm.CanCollide = false
+local hmesh = Instance.new("BlockMesh", cam_larm)
+hmesh.Scale = Vector3.new(5, 10, 5)
+
+local cam_rarm = cam_larm:clone()
+cam_rarm.Parent = anim_model
+
+function StartAnimation()
+	local check = {torso:findFirstChild("LeftWeld"), torso:findFirstChild("RightWeld"), torso:findFirstChild("HeadWeld")}
+	if check[1] then check[1]:remove() end
+	if check[2] then check[2]:remove() end
+	if check[3] then check[3]:remove() end
+	local check2 = {character:findFirstChild("WeaponObject"), camera:findFirstChild("WeaponAnimation")}
+	if check2[1] then check2[1].Parent = nil end
+	if check2[2] then check2[2].Parent = nil end
+	if motors[1] then
+		motors[1].Part1 = nil
+	end
+	if motors[2] then
+		motors[2].Part1 = nil
+	end
+	if motors[3] then
+		motors[3].Part1 = nil
+	end
+	welds = {Instance.new(conn_type), Instance.new(conn_type), Instance.new(conn_type)}
+	welds[1].Part0 = torso
+	welds[2].Part0 = torso
+	welds[3].Part0 = torso
+	welds[1].Part1 = character:findFirstChild("Left Arm")
+	welds[2].Part1 = character:findFirstChild("Right Arm")
+	welds[3].Part1 = character:findFirstChild("Head")
+	welds[1].Name = "LeftWeld"
+	welds[2].Name = "RightWeld"
+	welds[2].Name = "HeadWeld"
+	welds[1].C0 = CFrame.new(-1.5, 0, 0)
+	welds[2].C0 = CFrame.new(1.5, 0, 0)
+	welds[3].C0 = CFrame.new(0, 1.5, 0)
+	welds[1].Parent = torso
+	welds[2].Parent = torso
+	welds[3].Parent = torso
+	
+	weapon_parts[1].Parent = character
+	local wep_weld = Instance.new(conn_type)
+	wep_weld.Part0 = character:findFirstChild("Right Arm")
+	wep_weld.Part1 = weapon_parts[1]
+	wep_weld.C0 = CFrame.new()
+	wep_weld.Parent = weapon_parts[1]
+	
+	local weld1 = welds[1]
+	local weld2 = welds[2]
+	local weld3 = welds[3]
+	
+	local cam_welds = {Instance.new(conn_type), Instance.new(conn_type), Instance.new(conn_type)}
+	cam_welds[1].Part0 = torso
+	cam_welds[1].Part1 = cam_larm
+	cam_welds[1].Parent = cam_larm
+	cam_welds[2].Part0 = torso
+	cam_welds[2].Part1 = cam_rarm
+	cam_welds[2].Parent = cam_rarm
+	cam_welds[3].Part0 = cam_rarm
+	cam_welds[3].Part1 = weapon_parts[2]
+	cam_welds[3].Parent = weapon_parts[2]
+	weapon_parts[2].Parent = anim_model
+	
+	local move_anim_speed = 3
+	local last_p = Vector3.new()
+	local move_amm = 0
+	coroutine.resume(coroutine.create(function()
+		while weld1.Parent ~= nil do
+			local delta = wait(1/25)
+			local cur_p = torso.Position
+			if (cur_p - last_p).magnitude >= 0.1 then
+				move_amm = math.min(1, move_amm + delta * move_anim_speed)
+			else
+				move_amm = math.max(0, move_amm - delta * move_anim_speed)
+			end
+			last_p = cur_p
+		end
+	end))
+	
+	local r_serv = game:GetService("RunService")
+
+	function easein(x)
+		return math.sin(math.rad(x * 90))
+	end
+
+	local a_horse = (character:findFirstChild("HorseHead") ~= nil)
+	local horse_displace = {0, 0}
+	local horse_cf = CFrame.Angles(0.0001, 0.0001, 0)
+	if a_horse then
+		coroutine.resume(coroutine.create(function()
+			while weld1.Parent ~= nil do
+				local rndwait = (math.random(100, 1000) / 1000) * 4
+				wait(rndwait)
+				local oldd = {horse_displace[1], horse_displace[2]}
+				local disp2 = {math.random(-60, 60), math.random(0, 25)}
+				
+				local ld = 0
+				while ld ~= 1 do
+					local st = tick()
+					r_serv.RenderStepped:wait()
+					ld = math.min(1, ld + ((tick() - st) * 4))
+					local eff = easein(ld)
+					
+					local x = oldd[1] - ((oldd[1] - disp2[1]) * eff)
+					local y = oldd[2] - ((oldd[2] - disp2[2]) * eff)
+					horse_displace = {x, y}
+					horse_cf = CFrame.Angles(math.rad(y), math.rad(x) , 0)
+				end
+			end
+		end))
+	end
+	local last_va = 0
+	local last_va2 = 0
+	local view_velocity = {0, 0}
+	
+	coroutine.resume(coroutine.create(function()
+		local last_time = tick()
+		while weld1.Parent ~= nil do
+			r_serv.RenderStepped:wait()
+			local delta = tick() - last_time
+			last_time = tick()
+			
+			local breathe_amp = 2
+			local breathe_freq = 0.8
+			local breathe = math.sin(math.rad(tick() * 90 * breathe_freq)) * breathe_amp
+			
+			local shake_freq = 5
+			local shake_amp = {0.05, 0.05}
+			local arm_shake = CFrame.new(
+				math.sin(math.rad(tick() * 90 * shake_freq)) * move_amm * shake_amp[1],
+				0,
+				math.abs(math.sin(math.rad(tick() * 90 * shake_freq)) * move_amm * shake_amp[2]))
+
+			local p_distance = (head.Position - mouse.Hit.p).magnitude
+			if p_distance == 0 then p_distance = 0.0001 end
+			local p_height = mouse.Hit.p.y - head.Position.y
+			local view_angle 
+			if p_height ~= 0 then
+				view_angle = math.deg(math.asin(math.abs(p_height) / p_distance)) * (math.abs(p_height) / p_height)
+			else
+				view_angle = 0
+			end
+			
+			local cam_cf = camera.CoordinateFrame
+			local looking_at = cam_cf * CFrame.new(0, 0, -100)
+			local view_angle2 = math.deg(math.atan2(cam_cf.p.x - looking_at.p.x, cam_cf.p.z - looking_at.p.z)) + 180
+			
+			local v_delta1, v_delta2
+			local dir1 = 0
+			local dir2 = 0
+			v_delta1 = math.abs(view_angle - last_va)
+			if v_delta1 ~= 0 then
+				dir1 = (view_angle - last_va) / v_delta1
+			end
+			local va_check = {math.abs(view_angle2 - last_va2), 360 - math.abs(view_angle2 - last_va2)}
+			if view_angle2 == last_va2 then
+				dir2 = 0
+				v_delta2 = 0
+			elseif va_check[1] < va_check[2] then
+				v_delta2 = va_check[1]
+				dir2 = (view_angle2 - last_va2) / va_check[1]
+			else
+				v_delta2 = va_check[2]
+				if last_va2 > view_angle2 then
+					dir2 = 1
+				else
+					dir2 = -1
+				end
+			end
+			last_va = view_angle
+			last_va2 = view_angle2
+			
+			view_velocity[1] = view_velocity[1] / (1 + (delta * anim_p.aim_retract))
+			view_velocity[2] = view_velocity[2] / (1 + (delta * anim_p.aim_retract))
+			
+			local calc1 = v_delta1 * dir1 * anim_p.aim_amp
+			if calc1 ~= 0 then
+				view_velocity[1] = view_velocity[1] + (math.min(anim_p.aim_max_change, math.abs(calc1)) * (calc1 / math.abs(calc1)))
+			end
+			local calc2 = v_delta2 * dir2 * anim_p.aim_amp
+			if calc2 ~= 0 then
+				view_velocity[2] = view_velocity[2] + (math.min(anim_p.aim_max_change, math.abs(calc2)) * (calc2 / math.abs(calc2)))
+			end
+			
+			if view_velocity[1] ~= 0 then
+				view_velocity[1] = math.min(anim_p.aim_max_deg, math.abs(view_velocity[1])) * (math.abs(view_velocity[1]) / view_velocity[1])
+			end
+			if view_velocity[2] ~= 0 then
+				view_velocity[2] = math.min(anim_p.aim_max_deg, math.abs(view_velocity[2])) * (math.abs(view_velocity[2]) / view_velocity[2])
+			end
+			
+			local anmtp = _G.MurderKnife_AnimType
+			local anmst = _G.MurderKnife_AnimState
+			
+			if anmst == nil then
+				anmst = 0
+			end
+			
+			if anmtp ~= nil then
+				if Animations[anmtp] == nil then
+					anmtp = "Default"
+				end
+			else
+				anmtp = "Default"
+			end
+			local curr_anim = PlayAnimation(anmtp, anmst)
+			local chestCF = CFrame.new(0, 0.5, 0) * CFrame.Angles(math.rad(math.max(-rot_amplitude_chest, math.min(rot_amplitude_chest, view_angle)) + 90 + breathe), 0, 0)
+			weld1.C1 = (chestCF * curr_anim[1] * CFrame.new(0, -0.5, 0)):inverse()
+			weld2.C1 = (chestCF * curr_anim[2] * CFrame.new(0, -0.5, 0)):inverse()
+			wep_weld.C1 = (curr_anim[3]):inverse()
+			weapon_parts[1].Transparency = curr_anim[4]
+			if anim_head then
+				weld3.C1 = (CFrame.new(0, 0, 0) * CFrame.Angles(math.rad(math.max(-rot_amplitude_head, math.min(rot_amplitude_head, view_angle))), 0, 0) * horse_cf):inverse()
+			else
+				weld3.C1 = (CFrame.new(0, 0, 0)):inverse()
+			end
+			
+			if (head.Position - camera.CoordinateFrame.p).magnitude < 3 then
+				if anim_model.Parent == nil then
+					anim_model.Parent = camera
+				end
+				cam_welds[1].Parent = cam_larm
+				cam_welds[2].Parent = cam_rarm
+				cam_welds[3].Parent = weapon_parts[2]
+				local cam_cf = camera.CoordinateFrame * CFrame.Angles(math.rad(90 + (breathe / 2) - view_velocity[1]), 0, math.rad(view_velocity[2])) * arm_shake * anim_p.cam_offset
+				cam_welds[1].C1 = (torso.CFrame:inverse() * cam_cf * CFrame.new(-1.5, 0, 0) * curr_anim[1] * CFrame.new(0, -0.5, 0)):inverse()
+				cam_welds[2].C1 = (torso.CFrame:inverse() * cam_cf * CFrame.new(1.5, 0, 0) * curr_anim[2] * CFrame.new(0, -0.5, 0)):inverse()
+				cam_welds[3].C1 = (curr_anim[3]):inverse()
+				weapon_parts[2].Transparency = curr_anim[4]
+			else
+				if anim_model.Parent ~= nil then
+					anim_model.Parent = nil
+				end
+			end
+		end
+	end))
+end
+
+local last_st = 0
+local eq = false
+tool.Selected:connect(function(mouse)
+	if eq then return end
+	eq = true
+	wait()
+	StartAnimation()
+end)
+
+tool.Deselected:connect(function()
+	eq = false
+	EndAnimation()
+end)
+
+local p = game.Players.LocalPlayer.Character
+local weld = Instance.new("Weld",p.Torso)
+weld.Part0 = p.Torso
+local weld2 = Instance.new("Weld",p.Torso)
+weld2.Part0 = p.Torso
+local Smoke = Instance.new("Part",p.Torso)
+Smoke.Anchored = true
+Smoke.CanCollide = false
+Smoke.Size = Vector3.new(1,1,1)
+Smoke.CustomPhysicalProperties = PhysicalProperties.new(0,0,0,0,0)
+weld2.Part1 = Smoke
+weld2.C1 = CFrame.new(0,-4,3.5)
+Smoke.Anchored = false
+Smoke.Transparency = 1;
+
+local Particle = Instance.new("ParticleEmitter",Smoke)
+Particle.Rate = 3;
+Particle.Speed = NumberRange.new(30,30);
+Particle.VelocitySpread = 40;
+Particle.Texture = "rbxassetid://3412753"
