@@ -22,7 +22,7 @@ topkek.windows.misc = {}
 topkek.misc = {}
 
 topkek.gui = game:GetObjects("rbxassetid://678309209")[1] 
-topkek.gui.Parent = game.Players.LocalPlayer.PlayerGui
+topkek.gui.Parent = game.CoreGui
 
 topkek.center = topkek.gui.Main
 topkek.holder = topkek.center.Holder
