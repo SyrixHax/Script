@@ -1,0 +1,855 @@
+local plr = game:GetService("Players").LocalPlayer
+local chara = plr.Character
+local rightarm = chara["Right Arm"]
+local leftarm = chara["Left Arm"]
+local torso = chara.Torso
+local rootpart = chara.HumanoidRootPart
+local rootjoint=rootpart.RootJoint
+local rootcf = CFrame.fromEulerAnglesXYZ(-1.57,0,3.14)
+local anim="idle"
+local rw=Instance.new("Weld",torso)
+local lw=Instance.new("Weld",torso)
+local rh=torso["Right Hip"]
+local lh=torso["Left Hip"]
+local r0=rh.C0
+local l0=lh.C0
+local humanoid=chara.Humanoid
+chara.Animate:Destroy()
+humanoid.MaxHealth = math.huge
+humanoid.Animator:Destroy()
+rw.Part0=torso
+rw.Part1=rightarm
+rw.C0=CFrame.new(1.5,0.5,0)
+rw.C1=CFrame.new(0,0.5,0)
+lw.Part0=torso
+lw.Part1=leftarm
+lw.C0=CFrame.new(-1.5,0.5,0)
+lw.C1=CFrame.new(0,0.5,0)
+attack = false
+local mouse = plr:GetMouse()
+local attacktype = 1
+
+function clerp(a,b,t)
+return a:lerp(b, t)
+end
+
+function rayCast(Pos, Dir, Max, Ignore)  -- Origin Position , Direction, MaxDistance , IgnoreDescendants
+return game:service("Workspace"):FindPartOnRay(Ray.new(Pos, Dir.unit * (Max or 999.999)), Ignore) 
+end 
+sine = 0
+change = 1
+neck = torso.Neck
+necko = torso.Neck.C0
+local m = Instance.new("Model",chara)
+m.Name="WeaponModel"
+local handle = Instance.new("Part",m)
+handle.CanCollide = false
+handle.Size = Vector3.new(1, 1, 1)
+local weld = Instance.new("Weld",rightarm)
+weld.Part0 = rightarm
+weld.Part1 = handle
+weld.C0 = CFrame.new(0, -1, 0)*CFrame.Angles(0,math.rad(90),0)
+handle.Transparency = 1
+local blade = Instance.new("Part",m)
+blade.CanCollide = false
+blade.Size = Vector3.new(1, 1, 5)
+local mesh = Instance.new("FileMesh",blade)
+mesh.MeshId = "http://www.roblox.com/asset/?id=11442510"
+mesh.TextureId = "http://www.roblox.com/asset/?id=15216978067"
+local bladeweld = Instance.new("Weld",handle)
+bladeweld.Part0 = handle
+bladeweld.Part1 = blade
+bladeweld.C0 = CFrame.Angles(math.rad(90),math.rad(90),0)*CFrame.new(0,0,2)
+mesh.Scale = Vector3.new(2,2,2)
+active = false
+hitting = false
+killaura = false
+local bladeend=Instance.new("Part",m)
+bladeend.Transparency=1
+bladeend.Size = Vector3.new(1,1,1)
+local bw = Instance.new("Weld",blade)
+bw.Part0=blade
+bw.Part1=bladeend
+bw.C0=CFrame.new(0, 0, 3)
+bladeend.CanCollide = false
+local trail = Instance.new("Trail",m)
+local att1= Instance.new("Attachment",handle)
+local att2=Instance.new("Attachment",bladeend)
+trail.Attachment0=att1
+trail.Attachment1=att2
+trail.Lifetime=0.2
+trail.Enabled = false
+trail.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255),Color3.fromRGB(255, 255, 255))
+function swait(num)
+if num==0 or num==nil then
+game:service'RunService'.Heartbeat:wait(0)
+else
+for i=0,num do
+game:service'RunService'.Heartbeat:wait(0)
+end
+end
+end
+function ragdoll(p)
+if banmode == true then
+repeat
+local ska = Instance.new("SkateboardPlatform",p)
+ska.Transparency = 1
+ska.Position = p.Head.Position
+wait()
+until p == nil
+end
+p:BreakJoints()
+p.Archivable = true
+clone = p:Clone()
+clone.Parent = workspace
+for i,v in pairs(clone:GetChildren()) do
+if v.ClassName == "Script" or v.ClassName == "LocalScript" then
+v:destroy()
+end
+for i,p in pairs(v:GetChildren()) do
+if p.ClassName == "Weld" or p.ClassName == "Motor6D" or p.ClassName == "BodyVelocity" then
+p:destroy()
+end
+end
+end
+for i,t in pairs(p:GetChildren()) do
+if t.ClassName == "Accessory" or t.ClassName == "ForceField" then
+t:destroy()
+end
+end
+vel = Instance.new("BodyVelocity", clone.Torso)
+vel.Velocity = clone.Torso.CFrame.lookVector * -5
+vel.MaxForce = Vector3.new(math.huge,math.huge,math.huge)
+if clone.Head:FindFirstChild("face") then
+clone.Head.face.Texture = "http://www.roblox.com/asset/?id=161061608"
+elseif clone.Head:FindFirstChild("roblox") then
+clone.Head.roblox.Texture = "http://www.roblox.com/asset/?id=161061608"
+elseif clone.Head:FindFirstChild("Face") then
+clone.Head.Face.Texture = "http://www.roblox.com/asset/?id=161061608"
+end
+vel:Destroy()
+using = false
+hit = Instance.new("Sound", clone.Torso)
+hit.SoundId = "rbxassetid://260430060"
+hit.Volume = 5
+hit1 = Instance.new("Sound", clone.Torso)
+hit1.SoundId = "rbxassetid://138087186"
+hit1.Volume = 5
+hit2 = Instance.new("Sound", clone.Torso)
+hit2.SoundId = "rbxassetid://131237241"
+hit2.Volume = 5
+hit3 = Instance.new("Sound", clone.Torso)
+hit3.SoundId = "rbxassetid://278062209"
+hit3.Volume = 5
+hit3.TimePosition = 0.33
+clone:FindFirstChildOfClass("Humanoid").PlatformStand = true
+if zombiemode == true then
+coroutine.wrap(function()
+wait(3)
+clone:FindFirstChildOfClass("Humanoid").PlatformStand = false
+clone:FindFirstChildOfClass("Humanoid").WalkSpeed = math.random(10, 35)
+bleed(clone.Head.CFrame, 10)
+end)()
+end
+for i, v in pairs(clone:GetChildren()) do
+if v.Name == "BASE" then
+v:Destroy()
+end
+end
+local leftarm = clone:findFirstChild("Left Arm")
+local rightrm = clone:findFirstChild("Right Arm")
+local leftleg = clone:findFirstChild("Left Leg")
+local rightleg = clone:findFirstChild("Right Leg")
+local head = clone:findFirstChild("Head")
+local welding = Instance.new("Weld", clone.Torso)
+welding.Part0 = clone.Torso
+welding.Part1 = head
+welding.C0 = welding.C0 * CFrame.new(0,1.5,0)
+for i, g in pairs(p:GetChildren()) do
+if g.ClassName == "Part" then
+g:destroy()
+end
+end
+for i, h in pairs(p:GetChildren()) do
+if h.ClassName == "Accesory" then
+h:destroy()
+end
+end
+if leftleg ~= nil then
+local glue = Instance.new("Glue", clone.Torso)
+glue.Part0 = clone.Torso
+glue.Part1 = leftleg
+glue.Name = "Left leg"
+local collider = Instance.new("Part", leftleg)
+collider.Position = Vector3.new(0,999,0)
+collider.Size = Vector3.new(1.7, 1, 1)
+collider.Shape = "Cylinder"
+local weld = Instance.new("Weld", collider)
+weld.Part0 = leftleg
+weld.Part1 = collider
+weld.C0 = CFrame.Angles(0, 0, 80)
+collider.TopSurface = "Smooth"
+collider.BottomSurface = "Smooth"
+collider.formFactor = "Symmetric"
+glue.C0 = CFrame.new(-0.5, -1, 0, -0, -0, -1, 0, 1, 0, 1, 0, 0)
+glue.C1 = CFrame.new(-0, 1, 0, -0, -0, -1, 0, 1, 0, 1, 0, 0)
+collider.Transparency = 1
+end
+game:GetService("Debris"):AddItem(clone,7.5)
+
+if rightleg ~= nil then
+local glue1 = Instance.new("Glue", clone.Torso)
+glue1.Part0 = clone.Torso
+glue1.Part1 = rightleg
+glue1.Name = "Right leg"
+local collider1 = Instance.new("Part", rightleg)
+collider1.Position = Vector3.new(0,999,0)
+collider1.Size = Vector3.new(1.7, 1, 1)
+collider1.Shape = "Cylinder"
+local weld1 = Instance.new("Weld", collider1)
+weld1.Part0 = rightleg
+weld1.Part1 = collider1
+weld1.C0 = CFrame.Angles(0, 0, 80)
+collider1.TopSurface = "Smooth"
+collider1.BottomSurface = "Smooth"
+collider1.formFactor = "Symmetric"
+glue1.C0 = CFrame.new(0.5, -1, 0, 0, 0, 1, 0, 1, 0, -1, -0, -0)
+glue1.C1 = CFrame.new(0, 1, 0, 0, 0, 1, 0, 1, 0, -1, -0, -0)
+collider1.Transparency = 1
+end
+
+if rightrm ~= nil then
+local glue11 = Instance.new("Glue", clone.Torso)
+glue11.Part0 = clone.Torso
+glue11.Part1 = rightrm
+glue11.Name = "Right shoulder"
+local collider11 = Instance.new("Part", rightrm)
+collider11.Position = Vector3.new(0,9999,0)
+collider11.Size = Vector3.new(1.8,1,1)
+collider11.Shape = "Cylinder"
+local weld11 = Instance.new("Weld", collider11)
+weld11.Part0 = rightrm
+weld11.Part1 = collider11
+weld11.C0 = CFrame.Angles(0, 0, 80)
+collider11.TopSurface = "Smooth"
+collider11.BottomSurface = "Smooth"
+collider11.formFactor = "Symmetric"
+glue11.C0 = CFrame.new(1.5, 0.5, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0)
+glue11.C1 = CFrame.new(0, 0.5, 0, 0, 0, 1, 0, 1, 0, -1, 0, 0)
+collider11.Transparency = 1
+end
+
+if leftarm ~= nil then
+local glue111 = Instance.new("Glue", clone.Torso)
+glue111.Part0 = clone.Torso
+glue111.Part1 = leftarm
+glue111.Name = "Left shoulder"
+local collider111 = Instance.new("Part", leftarm)
+collider111.Position = Vector3.new(0,9999,0)
+collider111.Size = Vector3.new(1.8,1,1)
+collider111.Shape = "Cylinder"
+local weld111 = Instance.new("Weld", collider111)
+weld111.Part0 = leftarm
+weld111.Part1 = collider111
+weld111.C0 = CFrame.Angles(0, 0, 80)
+collider111.TopSurface = "Smooth"
+collider111.BottomSurface = "Smooth"
+collider111.formFactor = "Symmetric"
+glue111.C0 = CFrame.new(-1.5, 0.5, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0)
+glue111.C1 = CFrame.new(0, 0.5, 0, 0, 0, -1, 0, 1, 0, 1, 0, 0)
+collider111.Transparency = 1
+----
+sensoring = Instance.new("Part", clone.Torso)
+sensoring.Size = Vector3.new(1.2,1.1,0.8)
+sensoring.CanCollide = false
+sensoring.Position = clone.Torso.Position
+local welder = Instance.new("Weld", sensoring)
+welder.Part0 = clone.Torso
+welder.Part1 = sensoring
+welder.C0 = welder.C0 * CFrame.new(0,0,1.05)
+sensoring.Transparency = 1
+-----
+sensoring1 = Instance.new("Part", clone.Torso)
+sensoring1.Size = Vector3.new(1.2,1.1,0.8)
+sensoring1.CanCollide = false
+sensoring1.Position = clone.Torso.Position
+local welder1 = Instance.new("Weld", sensoring)
+welder1.Part0 = clone.Torso
+welder1.Part1 = sensoring1
+welder1.C0 = welder1.C0 * CFrame.new(0,0,-1.05)
+sensoring1.Transparency = 1
+end
+end
+function ShowDamage(dam,cf)
+local t=Instance.new('Part',workspace)
+ t.Size=Vector3.new(1, 1, 1)
+ t.Transparency=1
+t.CFrame = cf
+ local bil=Instance.new('BillboardGui',t)
+bil.Size=UDim2.new(0, 9, 0, 9)
+local tex=Instance.new('TextLabel',bil)
+tex.Size=UDim2.new(0, 1 , 0, 1)
+tex.BackgroundTransparency=1
+tex.Text="-"..dam
+tex.TextSize=76
+tex.FontSize=Enum.FontSize.Size28
+tex.Font = Enum.Font.ArialBold
+t.Anchored=true
+tex.TextColor3=Color3.fromRGB(30, 30, 30)
+t.CanCollide=false
+game:GetService("Debris"):AddItem(t, 10)
+coroutine.wrap(function()
+for i=1, 100 do
+t.CFrame=t.CFrame*CFrame.new(0, 0.01, 0)
+swait(2)
+end
+t:Destroy()
+end)()
+end
+function dmg(hit)
+for i,v in pairs(hit.Parent:GetChildren()) do
+if v:isA("Humanoid") and hit.Parent ~= chara and active==true and hitting == false then
+local sound = Instance.new("Sound",hit)
+sound.SoundId="rbxassetid://566593606"
+sound:Play()
+hitting = true
+v.PlatformStand=true
+v.Died:connect(function()
+ragdoll(hit.Parent)
+end)
+local dam = math.random(20, 60)
+ShowDamage(dam, torso.CFrame*CFrame.new(math.random(-20, 20), 0, math.random(-20, 20)))
+v:TakeDamage(dam)
+wait(0.2)
+v.PlatformStand=false
+hitting = false
+end
+end
+end
+nosoundhitting = false
+createDamage = function(part,hit,minim,maxim)
+if hit.Parent==nil then
+return
+end
+local h=hit.Parent:FindFirstChild("Humanoid")
+for _,v in pairs(hit.Parent:children()) do
+if v:IsA("Humanoid") then
+h=v
+end
+end
+if hit.Parent.Parent:FindFirstChild("Torso")~=nil then
+h=hit.Parent.Parent:FindFirstChild("Humanoid")
+end
+if hit.Parent.className=="Hat" then
+hit=hit.Parent.Parent:findFirstChild("Head")
+end
+if h~=nil and hit.Parent.Name~=chara.Name and hit.Parent:FindFirstChild("Torso")~=nil then
+if hit.Parent:findFirstChild("DebounceHit")~=nil then if hit.Parent.DebounceHit.Value==true then return end end
+--[[if game.Players:GetPlayerFromCharacter(hit.Parent)~=nil then
+return
+end]]
+--hs(hit,1.2)
+local c=Instance.new("ObjectValue")
+c.Name="creator"
+c.Value=game:service("Players").LocalPlayer
+c.Parent=h
+game:GetService("Debris"):AddItem(c,.5)
+local Damage=math.random(minim,maxim)
+ShowDamage(Damage, hit.CFrame*CFrame.new(math.random(-20, 20),0,math.random(-20,20)))
+   h:TakeDamage(Damage)
+end
+end
+MagnitudeDmg=function(part,dis)
+for _,c in pairs(workspace:children()) do
+local hum=c:findFirstChild("Humanoid")
+if hum~=nil then
+local head=c:findFirstChild("Torso")
+if head~=nil then
+local targ=head.Position-part.Position
+local mag=targ.magnitude
+if mag<=dis and c.Name~=chara.Name then
+createDamage(part, hum.Parent.Torso, 20, 60)
+end
+end
+end
+end
+end
+function makeShockwave(height,color,speed,range,pulse,cf)
+local range = range or 2000
+local p = Instance.new("Part")
+p.Anchored = true
+p.CanCollide = false
+p.FormFactor = "Custom"
+p.BrickColor = color
+p.Parent = workspace
+local m = Instance.new("SpecialMesh",p)
+m.MeshId = "rbxassetid://3270017"
+local estimateSurvival = math.floor(range/speed) * 0.03
+game:GetService("Debris"):AddItem(p,estimateSurvival)
+coroutine.wrap(function ()
+print('shock')
+for i = 1,range,speed do
+p.Transparency = 1-math.min(0.5,3-(i/500))
+m.Scale = Vector3.new(i,i,i*height)
+p.CFrame = cf
+wait()
+end
+p:Destroy()
+end)()
+end
+function attackone()
+if attack==false then
+attack = true
+trail.Enabled = true
+for i = 0,1,0.1 do
+swait()
+rw.C0 = clerp(rw.C0, CFrame.new(1.5,0.5,0)*CFrame.Angles(math.rad(160),math.rad(0),math.rad(40)),.3)
+lw.C0 =clerp(lw.C0, CFrame.new(1.2,.99,-0.4)*CFrame.Angles(math.rad(130),math.rad(0),math.rad(40)),.3)
+rootjoint.C0 = clerp(rootjoint.C0, rootcf*CFrame.new(0,0,0)*CFrame.Angles(0,0,0),.3)
+rh.C0=clerp(rh.C0,r0,.3)
+lh.C0=clerp(lh.C0,l0,.3)
+neck.C0=clerp(neck.C0,necko*CFrame.Angles(0,0,0),.3)
+end
+active = true
+local swing=Instance.new("Sound",handle)
+swing.SoundId="rbxassetid://1306070008"
+swing:Play()
+game:GetService("Debris"):AddItem(swing, 3)
+blade.Touched:connect(dmg)
+for i=0,1,0.1 do
+swait()
+neck.C0=clerp(neck.C0,necko*CFrame.Angles(0.4,0,0),.3)
+rw.C0=clerp(rw.C0, CFrame.new(0.7,0.5,-0.6)*CFrame.Angles(math.rad(10),math.rad(0),math.rad(-40)),.3)
+lw.C0=clerp(lw.C0, CFrame.new(0.5,0.5,-0.4)*CFrame.Angles(math.rad(10),math.rad(0),math.rad(-40)),.3)
+end
+wait(1/60)
+attack=false
+attacktype = 2
+active = false
+trail.Enabled = false
+end
+end
+
+function attacktwo()
+if attack == false then
+attack=true
+trail.Enabled = true
+for i=0,1,0.1 do
+swait()
+rh.C0=clerp(rh.C0,r0,.3)
+lh.C0=clerp(lh.C0,l0,.3)
+rootjoint.C0=clerp(rootjoint.C0, rootcf*CFrame.new(0, 0, 0)*CFrame.Angles(0,0,math.rad(90)),0.3)
+neck.C0 = clerp(neck.C0, necko*CFrame.Angles(0,0,math.rad(-90)),.3)
+lw.C0=clerp(lw.C0,CFrame.new(-1.5,0.5,0)*CFrame.Angles(math.rad(0),math.rad(0),math.rad(-90)),.3)
+rw.C0=clerp(rw.C0,CFrame.new(-1.3,0.5,-0.3)*CFrame.Angles(math.rad(0),math.rad(0),math.rad(-90)),.3)
+end
+local swing=Instance.new("Sound",handle)
+swing.SoundId="rbxassetid://1306070008"
+swing:Play()
+active = true
+blade.Touched:connect(dmg)
+for i=0,1,0.1 do
+swait()
+rootjoint.C0=clerp(rootjoint.C0, rootcf*CFrame.new(0, 0, 0)*CFrame.Angles(0,0,math.rad(-120)),0.5)
+neck.C0 = clerp(neck.C0, necko*CFrame.Angles(0,0,math.rad(90)),.3)
+rw.C0=clerp(rw.C0,CFrame.new(-1.3,0.5,-0.3)*CFrame.Angles(math.rad(0),math.rad(10),math.rad(-90)),.3)
+end
+wait(1/60)
+attacktype=3
+attack=false
+trail.Enabled = false
+active = false
+end
+end
+function attackthree()
+if attack==false then
+attack = true
+trail.Enabled=true
+for i =0,1,0.1 do
+swait()
+rh.C0=clerp(rh.C0,r0,.3)
+lh.C0=clerp(lh.C0,l0,.3)
+neck.C0 = clerp(neck.C0, necko*CFrame.Angles(0,0,0),.3)
+rootjoint.C0=clerp(rootjoint.C0, rootcf*CFrame.new(0, 0, 0),.3)
+rw.C0=clerp(rw.C0, CFrame.new(1,1.5,0)*CFrame.Angles(math.rad(192),math.rad(0),math.rad(-40)),.3)
+lw.C0=clerp(lw.C0, CFrame.new(-1,1.5,0)*CFrame.Angles(math.rad(192),math.rad(0),math.rad(40)),.3)
+end
+local swing=Instance.new("Sound",handle)
+swing.SoundId="rbxassetid://1306070008"
+swing:Play()
+active = true
+blade.Touched:connect(dmg)
+coroutine.wrap(function()
+if hitfloor~=nil then
+local wave = Instance.new("Part",workspace)
+wave.Name = "Effect"
+wave.CanCollide = false
+wave.Anchored = true
+wave.CFrame = torso.CFrame*CFrame.new(0, -2, 0)
+wave.BrickColor = hitfloor.BrickColor
+local mes = Instance.new("FileMesh",wave)
+mes.MeshId = "rbxassetid://20329976"
+MagnitudeDmg(torso, 20)
+game:GetService("Debris"):AddItem(wave,10)
+for i = 1, 60 do
+mes.Scale = mes.Scale+Vector3.new(0.8, 0.4, 0.8)
+wave.Transparency = wave.Transparency + 1/60
+swait()
+end
+wave:Destroy()
+end
+end)()
+for i=0,1,0.1 do
+swait()
+neck.C0=clerp(neck.C0,necko*CFrame.Angles(0.4,0,0),.3)
+rw.C0=clerp(rw.C0, CFrame.new(1,0.5,-0.5)*CFrame.Angles(math.rad(0),math.rad(0),math.rad(-30)),.3)
+lw.C0=clerp(lw.C0, CFrame.new(-1,0.5,-0.5)*CFrame.Angles(math.rad(0),math.rad(0),math.rad(30)),.3)
+end
+end
+wait(1/60)
+attack = false
+active = false
+attacktype = 1
+trail.Enabled=false
+end
+function PlayAnimationFromTable(table, speed)
+rootjoint.C0 = clerp(rootjoint.C0, table[1], speed)
+torso.Neck.C0 = clerp(neck.C0, table[2], speed)
+rw.C0 = clerp(rw.C0, table[3], speed)
+lw.C0 = clerp(lw.C0, table[4], speed)
+rh.C0 = clerp(rh.C0, table[5], speed)
+lh.C0 = clerp(lh.C0, table[6], speed)
+end
+function blockEffect(cframe, amount)
+coroutine.wrap(function()
+for x = 1, amount do
+local block = Instance.new("Part",workspace)
+block.Name="Effect"
+block.CanCollide = false
+block.Anchored = true
+block.CFrame = cframe
+block.BrickColor = BrickColor.Black()
+block.Material="Neon"
+block.Size = Vector3.new(0.1, 0.1, 0.1)
+game:GetService("Debris"):AddItem(block, 10)
+coroutine.wrap(function()
+for i = 1, amount*2 do
+swait()
+block.Transparency = block.Transparency+1/amount
+block.CFrame = block.CFrame*CFrame.Angles(math.random(0, 360),math.random(0, 360),math.random(0, 360))
+block.Size = block.Size+Vector3.new(0.07, 0.07, 0.07)
+end
+end)()
+swait()
+end
+end)()
+end
+hiding = false
+function Hide()
+if attack==false and hiding ==false then
+hiding = true
+attack=true
+humanoid.WalkSpeed = 0
+humanoid.JumpPower = 0
+for i = 0, 5, 0.05 do
+swait()
+PlayAnimationFromTable({
+rootcf*CFrame.new(0, 0, -9),
+necko,
+CFrame.new(1.5,0.5,0)*CFrame.Angles(math.rad(180),0,0),
+CFrame.new(-1.5,0.5,0)*CFrame.Angles(math.rad(180),0,0),
+r0,
+l0
+},0.05)
+coroutine.wrap(function()
+wait(3)
+humanoid.WalkSpeed = 50
+humanoid.JumpPower = 0
+end)()
+end
+else
+humanoid.WalkSpeed = 0
+humanoid.JumpPower = 0
+for i = 0, 5, 0.05 do
+swait()
+PlayAnimationFromTable({
+rootcf*CFrame.new(0, 0, 0),
+necko*CFrame.Angles(-0.6,0,0),
+CFrame.new(1.5,0.5,0)*CFrame.Angles(math.rad(170),0,0),
+CFrame.new(-1.5,0.5,0)*CFrame.Angles(math.rad(0),0,0),
+r0,
+l0
+},0.05)
+end
+humanoid.WalkSpeed = 16
+humanoid.JumpPower = 50
+hiding = false
+attack = false
+end
+end
+function computeDirection(vec)
+local lenSquared = vec.magnitude * vec.magnitude
+local invSqrt = 1 / math.sqrt(lenSquared)
+return Vector3.new(vec.x * invSqrt, vec.y * invSqrt, vec.z * invSqrt)
+end
+function EnergyExplosion()
+if attack==false then
+attack = true
+local dbc=Instance.new("Sound",handle)
+dbc.Volume=1
+dbc.SoundId="http://www.roblox.com/asset/?id=2101137"
+dbc:Play()
+for i=1, 70 do
+swait()
+PlayAnimationFromTable({
+rootcf*CFrame.new(0,0,0)*CFrame.Angles(0,0,math.rad(90)),
+necko*CFrame.Angles(0,0,math.rad(-90)),
+CFrame.new(1.5,0.5,0)*CFrame.Angles(math.rad(20),math.rad(0),math.rad(90)),
+CFrame.new(-1.5,0.5,0)*CFrame.Angles(math.rad(-10),math.rad(0),math.rad(-10)),
+r0*CFrame.Angles(0,0,0),
+l0*CFrame.Angles(0,0,0)
+},.06)
+end
+local ball = Instance.new("Part",chara)
+ball.CanCollide=false
+ball.BrickColor=BrickColor.Black()
+ball.Size=Vector3.new(2, 2, 2)
+ball.Shape="Ball"
+ball.Material="Neon"
+local bweld=Instance.new("Weld",rightarm)
+bweld.Part0=rightarm
+bweld.Part1=ball
+bweld.C0=CFrame.new(0, -1.3, 0)
+blockEffect(ball.CFrame, 15)
+wait(0.3)
+for i=0,1,0.1 do
+swait()
+PlayAnimationFromTable({
+rootcf*CFrame.new(0,0,0)*CFrame.Angles(0,0,math.rad(90)),
+necko*CFrame.Angles(0,0,math.rad(-90)),
+CFrame.new(1.5,0.5,0)*CFrame.Angles(math.rad(20),math.rad(0),math.rad(110)),
+CFrame.new(-1.5,0.5,0)*CFrame.Angles(math.rad(-10),math.rad(0),math.rad(-10)),
+r0*CFrame.Angles(0,0,0),
+l0*CFrame.Angles(0,0,0)
+},.3)
+end
+ball:BreakJoints()
+local Target=mouse.Hit.p
+local direction = Target - handle.Position
+direction = computeDirection(direction)
+local pos = handle.Position + (direction * 10.0)   
+ball.CFrame = CFrame.new(pos,  pos + direction) * CFrame.Angles(math.pi/2, 0, 0)
+local floatForce = Instance.new("BodyForce")
+floatForce.force = Vector3.new(0, ball:GetMass() * 196.1, 0.0)
+floatForce.Parent = ball
+ball.Velocity = direction * 160
+game:GetService("Debris"):AddItem(ball, 30)
+local GB1=Instance.new("Sound",torso)
+local GB2=Instance.new("Sound",torso)
+local GB3=Instance.new("Sound",torso)
+local GB4=Instance.new("Sound",torso)
+GB1.SoundId="http://www.roblox.com/asset?id=1369158"
+GB2.SoundId="http://www.roblox.com/asset/?id=2974000"
+GB3.SoundId="rbxassetid://12222124"
+GB4.SoundId="http://www.roblox.com/asset/?id=2974249"
+GB3.Volume = 5
+GB3.PlaybackSpeed=0.2
+game:GetService("Debris"):AddItem(GB1,10)
+game:GetService("Debris"):AddItem(GB2,10)
+game:GetService("Debris"):AddItem(GB3,10)
+game:GetService("Debris"):AddItem(GB4,10)
+GB1:Play()
+GB2:Play()
+GB3:Play()
+GB4:Play()
+ball.Touched:connect(function(hit)
+if not hit:IsDescendantOf(chara) then
+MagnitudeDmg(ball, 100, 50, 99)
+floatForce.Parent = nil
+ball.Anchored = true
+local so1=Instance.new("Sound",ball)
+so1.SoundId="http://www.roblox.com/asset/?id=2767090"
+so1.Volume = 1
+so1.PlaybackSpeed = 0.8
+so1:Play()
+local so2=Instance.new("Sound",ball)
+so2.SoundId="http://www.roblox.com/asset/?id=13775494"
+so2.Volume = 1
+so2.PlaybackSpeed = 0.4
+so2:Play()
+game:GetService("Debris"):AddItem(ball,2)
+local ball2=ball:Clone()
+ball2.Parent=workspace
+makeShockwave(0.5,BrickColor.new("Black"),30,1000,0,ball2.CFrame)
+coroutine.resume(coroutine.create(function()
+for i = 1, 30 do
+ball2.Size = ball2.Size+Vector3.new(0.8,0.8,0.8)
+ball2.Transparency=ball2.Transparency+1/31
+wait()
+end
+end))
+for i=1, 30 do
+ball2.Size=ball2.Size+Vector3.new(0.2,0.2,0.2)
+ball2.Transparency=ball2.Transparency+1/29
+swait()
+end
+ball2:Destroy()
+end
+end)
+wait(1/60)
+attack = false
+end
+end
+mouse.Button1Down:connect(function()
+if attacktype == 1 then
+attackone()
+elseif attacktype == 2 then
+attacktwo()
+elseif attacktype == 3 then
+attackthree()
+elseif attacktype == 4 then
+attackfour()
+elseif attacktype == 5 then
+attackfive()
+attacktype = 1
+end
+end)
+function FollowTarget(target,humanoidp)
+repeat
+humanoid:MoveTo(target.Head.Position)
+wait()
+until humanoidp.Health == 0
+end
+activate = function()
+local kabox = Instance.new("Part",chara)
+kabox.Name = "ka"
+kabox.Size = Vector3.new(1, 5, 5)
+kabox.CanCollide = false
+local kaboxweld=Instance.new("Weld",torso)
+kaboxweld.Part0=torso
+kaboxweld.Part1=kabox
+kaboxweld.C0 = CFrame.new(0, 0, -2)
+kabox.Transparency = 1
+kabox.Touched:connect(function(hit)
+if hit.Parent:FindFirstChildOfClass("Humanoid") then
+if attacktype==1 then
+attackone()
+elseif attacktype==2 then
+attacktwo()
+elseif attacktype == 3 then
+attackthree()
+end
+end
+end)
+end
+
+function findNearestTorso(pos)
+local list = game.Workspace:children()
+local torso = nil
+local dist = 1000
+local temp = nil
+local human = nil
+local temp2 = nil
+for x = 1, #list do
+temp2 = list[x]
+if (temp2.className == "Model") and (temp2 ~= script.Parent) then
+temp = temp2:findFirstChild("Torso")
+human = temp2:findFirstChild("Humanoid")
+if (temp ~= nil) and (human ~= nil) and (human.Health > 0) then
+if (temp.Position - pos).magnitude < dist then
+torso = temp
+dist = (temp.Position - pos).magnitude
+end
+end
+end
+end
+return torso
+end
+function deactivate()
+if chara:FindFirstChild("ka") then
+chara.ka:Destroy()
+else
+wait()
+end
+end
+followmode = false
+mouse.KeyDown:connect(function(k)
+k = k:lower()
+
+if k=="v" then
+if killaura == false then
+killaura = true
+activate()
+else
+killaura = false
+deactivate()
+end
+end
+
+if k=="f" then
+if mouse.Target.Parent:FindFirstChildOfClass("Humanoid")~=nil then
+FollowTarget(mouse.Target.Parent,mouse.Target.Parent:FindFirstChildOfClass("Humanoid"))
+end
+end
+
+if k=="q" then
+if followmode == false then
+followmode = true
+coroutine.wrap(function()
+repeat
+wait(0.5)
+local target = findNearestTorso(script.Parent.Torso.Position)
+if target ~= nil then
+script.Parent.Humanoid:MoveTo(target.Position, target)
+end
+until followmode == false
+end)()
+else
+followmode = false
+end
+end
+
+if k=="e" then
+EnergyExplosion()
+end
+
+if k=="c" then
+Hide()
+end
+end)
+NoClipCons = {} 
+if #NoClipCons == 0 then 
+local con = game:service("RunService").Stepped:connect(function() 
+pcall(function() torso.CanCollide = false end) 
+pcall(function() chara.Head.CanCollide = false end) 
+end) 
+table.insert(NoClipCons, con) 
+else 
+for i, v in pairs(NoClipCons) do 
+v:disconnect() 
+table.remove(NoClipCons, i) 
+end 
+end 
+while true do
+swait()
+humanoid.Health = math.huge
+sine = sine + change
+local torvel=(rootpart.Velocity*Vector3.new(1,0,1)).magnitude
+hitfloor,posfloor=rayCast(rootpart.Position,(CFrame.new(rootpart.Position,rootpart.Position - Vector3.new(0,1,0))).lookVector,4,chara)
+if torvel<1 and hitfloor~=nil and attack==false then
+anim="idle"
+rw.C0 = clerp(rw.C0, CFrame.new(1.5,0.5,0)*CFrame.Angles(0,0,0),0.03)
+lw.C0 = clerp(lw.C0, CFrame.new(-1.5,0.5,0)*CFrame.Angles(0,0,0),.03)
+rootjoint.C0 = clerp(rootjoint.C0, rootcf*CFrame.new(0, 0, 0),0.3)
+neck.C0 = clerp(neck.C0, necko*CFrame.Angles(0,0,0),0.03)
+rh.C0=clerp(rh.C0,r0*CFrame.Angles(0,0,0),0.03)
+lh.C0=clerp(lh.C0,l0*CFrame.Angles(0,0,0),0.03)
+elseif torvel>1 and hitfloor~=nil and attack==false then
+rootjoint.C0 = clerp(rootjoint.C0, rootcf*CFrame.Angles(0.4, 0, 0)*CFrame.new(0,0,0),0.3)
+rw.C0=clerp(rw.C0, CFrame.new(1.5,0.5,0)*CFrame.Angles(math.rad(40),0,math.rad(20)),0.03)
+lw.C0=clerp(lw.C0,CFrame.new(-1.5,0.5,0)*CFrame.Angles(math.rad(0),math.rad(0),math.rad(-10)),0.03)
+neck.C0=clerp(neck.C0,necko*CFrame.Angles(-0.4,0,0),0.3)
+rh.C0=clerp(rh.C0,r0*CFrame.Angles(0,0,(math.rad(50)*math.cos(sine/5))),0.3)
+lh.C0=clerp(lh.C0,l0*CFrame.Angles(0,0,(math.rad(50)*math.cos(sine/5))),0.3)
+end
+end
