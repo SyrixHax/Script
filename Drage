@@ -513,6 +513,7 @@ for _, v in pairs(Blades) do
 	v.Touched:connect(TouchDamage)
 end
 Bin = Instance.new("HopperBin", me.Backpack)
+Bin.Name = Toolname
 EffectOn = false
 function StartEffect(color)
 	EffectOn = true
